@@ -1,3 +1,4 @@
+# if you're some kind of rich guy with the API this could still work
 from google import genai
 from google.genai import types
 import os
