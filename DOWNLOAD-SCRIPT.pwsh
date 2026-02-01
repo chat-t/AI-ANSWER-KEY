@@ -1,0 +1,41 @@
+#!/usr/bin/env pwsh
+
+# Ensure script can run
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+Write-Host "Checking for Node.js..."
+
+# Check if node is installed
+$nodeCheck = Get-Command node -ErrorAction SilentlyContinue
+
+if (-not $nodeCheck) {
+    Write-Host "Node.js not found. Installing Node.js via winget..."
+    # Install Node.js LTS with winget
+    winget install --id OpenJS.NodeJS.LTS -e --accept-package-agreements --accept-source-agreements
+} else {
+    Write-Host "Node.js found: $(node -v)"
+}
+
+# Refresh environment in this session
+$env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+# Check again for node, npm
+Write-Host "Verifying node and npm..."
+
+if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Error "Node.js still not detected. Please restart PowerShell or your computer."
+    exit 1
+}
+
+if (!(Get-Command npm -ErrorAction SilentlyContinue)) {
+    Write-Error "npm not found. Make sure Node.js installation was successful."
+    exit 1
+}
+
+Write-Host "npm version: $(npm -v)"
+Write-Host "Installing dependencies (puppeteer, pdf-lib)..."
+
+# Install dependencies
+npm install puppeteer pdf-lib
+
+Write-Host "Installation complete!"
