@@ -12,7 +12,7 @@ the training folder should contain all the material that the AI will study, for 
 the worksheets folder should (obviously) contain all the material the AI will solve, for example:\
 `assignment 1.pdf`\
 
-- right click inside of the folder that contains both folders and click on the "Run in Command prompt" option\
+- right click inside of the folder that contains both the training folder and the worksheets folder and click on the "Run in Command prompt" option\
 paste this inside:
 `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest 'https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.pwsh' -UseBasicParsing | Select-Object -ExpandProperty Content | Invoke-Expression"`\
 \
