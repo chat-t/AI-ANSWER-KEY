@@ -1,6 +1,24 @@
-
-
 AI Answer Keys
+
+my friend originally made this script that used gemini's official (free) api, but it is no longer free. so I made a browser automator that talks to gemini on your behalf from their official website.
+the site that I automated is googles AIStudio, here is the link: https://aistudio.google.com/prompts/new_chat
+
+## Initial setup: 
+open up your terminal:
+- for windows: type cmd in your search bar down below and click on the first application, it kind of looks like a black box.
+and paste this:
+
+//todo make the pwsh script
+
+type: `where chrome`
+copy that and paste it in the new line like this:\
+`C:Users/Desktop/folder/that/you/will/use: [text that you copied] --remote-debugging-port=21222`\
+then go to the link above in chrome that was just opened.
+
+- for linux:
+   run this in the directory you will be using to solve: curl -fsSL https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.sh | bash\
+  \
+   download chromium and run this: chromium --remote-debugging=21222
 
 Made so i can have more time to learn japanese instead of study for my engineering degree lol
 
