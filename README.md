@@ -4,6 +4,7 @@ my friend originally made this script that used gemini's official (free) api, bu
 the site that I automated is googles AIStudio, here is the link: https://aistudio.google.com/prompts/new_chat
 
 ## Initial setup (Windows): 
+### Warning !! the code only accepts pdfs, if it finds a file that's not a pdf, it will ignore it and it will not be sent/solved. you have been warned.
 open up the folder where you will be solving the sheets, you should make two folders:\
 `training folder` and `worksheets folder`\
 the training folder should contain all the material that the AI will study, for example:\
@@ -11,7 +12,6 @@ the training folder should contain all the material that the AI will study, for 
 the worksheets folder should (obviously) contain all the material the AI will solve, for example:\
 `assignment 1.pdf`\
 
-### Warning !! the code only accepts pdfs, if it finds a file that's not a pdf, it will ignore it and it will not be sent/solved. you have been warned.
 - right click inside of the folder that contains both folders and click on the "Run in Command prompt" option\
 paste this inside:
 `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest 'https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.pwsh' -UseBasicParsing | Select-Object -ExpandProperty Content | Invoke-Expression"`\
