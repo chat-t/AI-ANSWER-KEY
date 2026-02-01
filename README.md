@@ -29,8 +29,9 @@ such that `C:/path/to/training/folder` and `C:/path/to/worksheets/folder` are th
 if you don't know how to get absolute paths, click on the folder of your choosing and then press `Ctrl + Shift + C` and paste it where the path needs to be, ORDER MATTERS !!\
 also make sure the path is between quotes: `" /path/here "`\
 \
-- for linux/unix/mac:
-   run this in the directory you will be using to solve: curl -fsSL https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.sh | bash\
+## for linux/unix/mac:
+   run this in the directory you will be using to solve:\
+   `curl -fsSL https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.sh | bash`\
   \
    download chromium and run this: chromium --remote-debugging=21222\
   \
