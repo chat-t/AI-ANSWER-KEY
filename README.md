@@ -3,22 +3,45 @@ AI Answer Keys
 my friend originally made this script that used gemini's official (free) api, but it is no longer free. so I made a browser automator that talks to gemini on your behalf from their official website.
 the site that I automated is googles AIStudio, here is the link: https://aistudio.google.com/prompts/new_chat
 
-## Initial setup: 
-open up your terminal:
-- for windows: type cmd in your search bar down below and click on the first application, it kind of looks like a black box.
-and paste this:
+## Initial setup (Windows): 
+open up the folder where you will be solving the sheets, you should make two folders:\
+`training folder` and `worksheets folder`\
+the training folder should contain all the material that the AI will study, for example:\
+`Lecture 1.pdf`\
+the worksheets folder should (obviously) contain all the material the AI will solve, for example:\
+`assignment 1.pdf`\
 
-//todo make the pwsh script
-
+### Warning !! the code only accepts pdfs, if it finds a file that's not a pdf, it will ignore it and it will not be sent/solved. you have been warned.
+- right click inside of the folder that contains both folders and click on the "Run in Command prompt" option\
+paste this inside:
+`powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest 'https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.pwsh' -UseBasicParsing | Select-Object -ExpandProperty Content | Invoke-Expression"`\
+\
+now you have all the requirements for the code to run, all you gotta do is just run it now.\
+\
 type: `where chrome`
-copy that and paste it in the new line like this:\
+copy the output and paste it in the new line like this:\
 `C:Users/Desktop/folder/that/you/will/use: [text that you copied] --remote-debugging-port=21222`\
-then go to the link above in chrome that was just opened.
-
-- for linux:
+then go to the link above in the chrome instance that was just opened.
+then inside of your command prompt write this:\
+`node browser-automation-script.js --training-folder "C:/path/to/training/folder" --worksheets-folder "C:/path/to/worksheets/folder"`\
+such that `C:/path/to/training/folder` and `C:/path/to/worksheets/folder` are the absolute paths for the folders.\
+\
+if you don't know how to get absolute paths, click on the folder of your choosing and then press `Ctrl + Shift + C` and paste it where the path needs to be, ORDER MATTERS !!\
+also make sure the path is between quotes: `" /path/here "`\
+\
+- for linux/unix/mac:
    run this in the directory you will be using to solve: curl -fsSL https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.sh | bash\
   \
-   download chromium and run this: chromium --remote-debugging=21222
+   download chromium and run this: chromium --remote-debugging=21222\
+  \
+  linux has the same command as windows, just give it the path to your directories.
+\
+### since this isn't my project I kept my friends' readme (also incase you have a paid API)
+***********************************************************************************************\
+ \
+ \
+ \
+ \ 
 
 Made so i can have more time to learn japanese instead of study for my engineering degree lol
 
