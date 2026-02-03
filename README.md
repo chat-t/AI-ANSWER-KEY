@@ -10,7 +10,7 @@ open up the folder where you will be solving the sheets, you should make two fol
 the training folder should contain all the material that the AI will study, for example:\
 `Lecture 1.pdf`\
 the worksheets folder should (obviously) contain all the material the AI will solve, for example:\
-`assignment 1.pdf`\
+`assignment 1.pdf`
 
 - right click inside of the folder that contains both the training folder and the worksheets folder and click on the "Run in Command prompt" option\
 paste this inside:
@@ -18,17 +18,14 @@ paste this inside:
 \
 now you have all the requirements for the code to run, all you gotta do is just run it now.\
 \
-type: `where chrome`
-copy the output and paste it in the new line like this:\
-`C:Users/Desktop/folder/that/you/will/use: [text that you copied] --remote-debugging-port=21222`\
-then go to the link above in the chrome instance that was just opened.
+paste this in your command prompt and hit enter: `"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=21222`\
+chrome should open up, now open up AIStudio so that the code can control it. here is the link again: `https://aistudio.google.com/prompts/new_chat` \
 then inside of your command prompt write this:\
 `node browser-automation-script.js --training-folder "C:/path/to/training/folder" --worksheets-folder "C:/path/to/worksheets/folder"`\
-such that `C:/path/to/training/folder` and `C:/path/to/worksheets/folder` are the absolute paths for the folders.\
-\
+where `C:/path/to/training/folder` and `C:/path/to/worksheets/folder` are the absolute paths for the folders.\
 if you don't know how to get absolute paths, click on the folder of your choosing and then press `Ctrl + Shift + C` and paste it where the path needs to be, ORDER MATTERS !!\
-also make sure the path is between quotes: `" /path/here "`\
-\
+also make sure the path is between quotes: `" /path/here "`
+
 ## for linux/unix/mac:
    run this in the directory you will be using to solve:\
    `curl -fsSL https://raw.githubusercontent.com/chat-t/AI-ANSWER-KEY/refs/heads/main/DOWNLOAD-SCRIPT.sh | bash`\
