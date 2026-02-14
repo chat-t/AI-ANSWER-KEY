@@ -1,9 +1,11 @@
+
 import puppeteer from "puppeteer";
 import { argv } from "node:process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument } from "pdf-lib";
 import { tmpdir } from "node:os";
+// import { error } from "node:console"
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -18,76 +20,17 @@ async function sleep(ms) {
   const [page] = await browser.pages();
   const chat_bar = `::-p-aria([name="Enter a prompt"][role=textbox])`;
   const plus_button = `::-p-aria([role=button][name='Insert images, videos, audio, or files'])`;
-  const plus_button_selector = await page.$(plus_button);
   const upload_file =
     "/html/body/div[1]/div/div[2]/div/div/button[2]/span/input";
   const more_options = `::-p-aria([role=button][name="View more actions"])`;
   const raw_mode = `[aria-label*='Toggle viewing raw output'][role*=menuitem]`;
-  const continue_prompt = String.raw`
-    great work, now solve this page, ***ALL OF IT*** start with \coolines and ***NO*** preamble, ***NO*** \begin{document}, this code will be a PART of the rest of the document, make sure you format it for that purpose. output ***ONLY*** the LaTeX code. 
-        `;
+  const continue_prompt = String.raw`great work, now solve this page, ***ALL OF IT*** start with \coolines and ***NO*** preamble, ***NO*** \begin{document}, this code will be a PART of the rest of the document, make sure you format it for that purpose. output ***ONLY*** the LaTeX code.`;
   const end_prompt_not_finished = String.raw`great, you finished the worksheet, make sure end the document ,I will send you the next one now.`;
-  const end_prompt_finished = String.raw`great, this is the last page, and then we are done. make sure you end it properly with \end{document}.`;
-  const main_prompt_sent = false;
+  const end_prompt_finished = String.raw`great, this is the last page and then we are done. make sure you end it properly with \end{document} and all.`;
   const run_button = `::-p-aria([role=button][name="Run Ctrl keyboard_return"])`;
-
-  async function clean_up_file(file) {
-    let content = fs.readFileSync(file, "utf-8");
-    content = content.replace(/\\n(?![a-zA-Z])/g, "\n");
-    let lines = content.split("\n");
-    lines.splice(0, 2);
-    lines.splice(lines.length - 2, 2);
-    content = lines.join("\n");
-    fs.writeFileSync(file, content, "utf-8");
-    console.log("file cleaned up");
-  }
-
-  function todo(function_name) {
-    (async function () {
-      const ini = await initLip();
-      const lip = new Lipgloss();
-      console.log(
-        lip.RenderMD(`${function_name} is not implemented`, "dracula"),
-      );
-    })();
-  }
-
-  async function extract_LaTeX_code(LaTeX_file) {
-    let File = await fs.readFile(LaTeX_file, "utf-8");
-    let temp_string = "";
-    temp_string += File;
-    let replies = await page.$$(
-      `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
-    );
-    await page.waitForSelector(
-      `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
-      { visible: true },
-    );
-    for (let i = 0; i < replies.length; i++) {
-      if (i % 2 !== 0) {
-        const el = await replies[i].evaluate((e) => e.innerText);
-        temp_string += el;
-        console.log(`appended ${i}-th reply to temporary string`);
-      }
-    }
-    await fs.writeFile(LaTeX_file, temp_string);
-    await clean_up_file(LaTeX_file);
-  }
-
-  function readFileAsync(file) {
-    return new Promise((resolve, reject) => {
-      let reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result);
-      };
-      reader.error = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  async function send_prompt() {
-    let main_prompt = String.raw`
-  Role: You are an expert Mathematics Tutor and a LaTeX/TikZ developer. Your goal is to solve the worksheet provided by creating a high-quality, standalone LaTeX document compatible with Overleaf, you NEED to stick to the training files as MUCH as possible. 
+  const new_chat = `https://aistudio.google.com/prompts/new_chat`;
+  const transparent_overlay = `.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop.cdk-overlay-backdrop-showing`;
+  const main_prompt = String.raw`Role: You are an expert Mathematics Tutor and a LaTeX/TikZ developer. Your goal is to solve the worksheet provided by creating a high-quality, standalone LaTeX document compatible with Overleaf, you NEED to stick to the training files as MUCH as possible. 
   Each worksheet will be split into pages, I need you to solve the ***ENTIRE*** sheet, ***NO EXCEPTIONS***. Ignore any previous solutions.
   the first page will be sent to you now.
   Requirements for the Output:
@@ -125,21 +68,53 @@ async function sleep(ms) {
   Final Answer: Boxed result + Summary Visualization.
   make sure the code box you send it correct and no formating issues`;
 
-    //sending first prompt
-    console.log("sending AIStudio the main prompt...");
-    await page.type(chat_bar, main_prompt);
-    console.log("prompt sent successfully!");
+  async function clean_up_file(file) {
+    let content = await fs.readFile(file, "utf-8");
+    content = content.replace(/\\n(?![a-zA-Z])/g, "\n");
+    let lines = content.split("\n");
+    lines.splice(0, 2);
+    lines.splice(lines.length - 2, 2);
+    content = lines.join("\n");
+    await fs.writeFile(file, content);
+    console.log("file cleaned up");
   }
 
-  async function send_a_single_page(i, pdf, len, name) {
-    const plus_button_clicked = await page.evaluate(
-      (el) => el.getAttribute("aria-expanded"),
-      plus_button_selector,
+  async function run() {
+    await page.$eval(run_button, (el) => el.click());
+  }
+
+  async function extract_LaTeX_code(LaTeX_file) {
+    let File = await fs.readFile(LaTeX_file, "utf-8");
+    let temp_string = "";
+    temp_string += File;
+    let replies = await page.$$(
+      `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
     );
-    const page_number = [i];
+    await page.waitForSelector(
+      `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
+      { visible: true },
+    );
+    for (let i = 0; i < replies.length; i++) {
+      if (i % 2 !== 0) {
+        const el = await replies[i].evaluate((e) => e.innerText);
+        temp_string += el;
+        console.log(`appended ${i}-th reply to temporary string`);
+      }
+    }
+    await fs.writeFile(LaTeX_file, temp_string);
+    await clean_up_file(LaTeX_file);
+  }
+
+  async function send_a_single_page(pdf, name, len, i) {
+    const plus_button_selector = await page.$(plus_button);
+    const plus_button_clicked = await plus_button_selector.evaluate((el) =>
+      el.getAttribute("aria-expanded"),
+    );
     console.log(`uploading page ${i + 1}/${len} from ${name}...`);
     const temppdf = await PDFDocument.create();
-    await temppdf.copyPages(pdf, page_number);
+    // const target_pdf_pages = await pdf.getPages()
+    const target_pdf_page = await temppdf.copyPages(pdf, [i]);
+    temppdf.addPage(target_pdf_page[0]);
     const extracted_page = await temppdf.save();
     const temp_path = await path.join(
       await fs.realpath(tmpdir()),
@@ -149,11 +124,10 @@ async function sleep(ms) {
     if (plus_button_clicked === "false") {
       await page.click(plus_button);
     }
-    const upload_file_selector = await page.waitForSelector(
-      `xpath//${upload_file}`,
-    );
-    await upload_file_selector.uploadFile(temp_path);
-    await sleep(500);
+    await page.waitForSelector("button.upload-file-menu-item");
+    const uploadInput = await page.$('input[type="file"]');
+    await uploadInput.uploadFile(temp_path);
+    await sleep(750);
     await fs.rm(temp_path);
     console.log("page uploaded successfully!");
   }
@@ -176,11 +150,11 @@ async function sleep(ms) {
     argv.splice(0, 2);
     if (argv == []) {
       const tutorial = `
-  Welcome to AI answer keys!
-  
-  there is only one command as of now, might create more later:
-  
-  --training-folder "/path/to/training/folder" --worksheets-folder "/path/to/worksheets/folder"`;
+      Welcome to AI answer keys!
+      
+      there is only one command as of now, might create more later:
+      
+      --training-folder "/path/to/training/folder" --worksheets-folder "/path/to/worksheets/folder"`;
       console.log(tutorial);
       return { path_to_training_folder: null, path_to_worksheets_folder: null };
     } else if (
@@ -193,8 +167,8 @@ async function sleep(ms) {
       };
     } else {
       const error = `
-  You have entered either a non-existing command or have entered it wrong, for proper syntax type in: node main.js
-        `;
+      You have entered either a non-existing command or have entered it wrong, for proper syntax type in: node main.js
+      `;
       console.error(error);
       return { path_to_training_folder: null, path_to_worksheets_folder: null };
     }
@@ -203,23 +177,34 @@ async function sleep(ms) {
   const { path_to_training_folder, path_to_worksheets_folder } =
     take_in_commands();
   //enable raw mode
+  await page.goto(new_chat);
   await page.click(more_options);
   console.log("clicked more options");
   await sleep(500);
-  await page.waitForSelector(raw_mode);
-  await page.click(raw_mode);
-  console.log("enabled raw mode");
-  await send_prompt();
+  const raw_mode_selector = await page.$(raw_mode);
+  const snapshot = await page.accessibility.snapshot({
+    root: raw_mode_selector,
+  });
+  if (snapshot.description === "Show conversation with markdown formatting") {
+    console.log("raw mode already enabled.");
+    await page.click(transparent_overlay);
+  } else {
+    await page.click(raw_mode);
+    console.log("enabled raw mode");
+  }
+  console.log("Sending AIstudio main prompt...");
+  await page.type(chat_bar, main_prompt);
+  console.log("main prompt sent!");
   await upload_training_files(path_to_training_folder);
   const worksheets = await fs.readdir(path_to_worksheets_folder);
   // let keep_track_of_worksheets = {};
   let idx = 0;
   for (const curr of worksheets) {
-    if (path.extname(curr) === ".json") {
-      keep_track_of_worksheets = require(
-        path.join(path_to_worksheets_folder, curr),
-      );
-    }
+    // if (path.extname(curr) === ".json") {
+    //   keep_track_of_worksheets = require(
+    //     path.join(path_to_worksheets_folder, curr),
+    //   );
+    // }
     if (path.extname(curr) !== ".pdf") {
       worksheets.splice(idx, 1);
     }
@@ -240,52 +225,87 @@ async function sleep(ms) {
     //     ? keep_track_of_worksheets[current_worksheet]
     //     : 0;
     for (let i = 0; i < pages_to_loop_through.length; i++) {
-      if (!main_prompt_sent) {
+      /*
+      I need to rework this loop to go like this:
+      -1 run main prompt 
+      -2 go through the pages of the worksheet one by one do not send them all at once.
+      -3 wait for the entire worksheet to be done
+      -4 when done extract all the replies
+      -5 repeat for the next worksheet
+      which means this loop should only care about one worksheet and the array of pages it controls
+      */
+      if (i === 0) {
         await send_a_single_page(
-          i,
           pdf,
-          pages_to_loop_through.length,
           current_worksheet,
-        );
-        await page.click(run_button);
-      } else if (i + 1 !== pages_to_loop_through.length) {
-        await send_a_single_page(
+          pages_to_loop_through.length,
           i,
-          pdf,
-          pages_to_loop_through.length,
-          current_worksheet,
         );
-        await page.type(chat_bar, continue_prompt);
-        await page.click(run_button);
+        await run();
+        await page.click(transparent_overlay);
+        await page.waitForFunction(
+          () => {
+            const replies = document.querySelectorAll(
+              `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
+            );
+            return replies.length > 0 && replies.length % 2 === 0;
+          },
+          { timeout: 0 },
+        );
       } else if (
-        i + 1 == pages_to_loop_through.length &&
-        idx2 + 1 != worksheets.length
+        i + 1 < pages_to_loop_through.length &&
+        idx2 + 1 < worksheets.length
       ) {
         await send_a_single_page(
-          i,
           pdf,
-          pages_to_loop_through.length,
           current_worksheet,
+          pages_to_loop_through.length,
+          i,
         );
-        await page.type(chat_bar, end_prompt_not_finished);
+        await page.click(transparent_overlay);
+        await page.type(chat_bar, continue_prompt);
+        await sleep(250);
         await page.click(run_button);
-        const TeX_file = path.join(
-          path_to_worksheets_folder,
-          `${curr}.key.TeX`,
+        await page.waitForFunction(() => {
+          const replies = document.querySelectorAll(
+            `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
+          );
+          return replies.length > 0 && replies.length % 2 === 0;
+        });
+      } else if (
+        i + 1 === pages_to_loop_through.length &&
+        idx2 + 1 < worksheets.length
+      ) {
+        const LaTeX_file_dir = path.join(
+          await fs.realpath(tmpdir()),
+          `${current_worksheet}.key.TeX`,
         );
-        await fs.writeFile(TeX_file);
-        await extract_LaTeX_code(TeX_file);
-      } else {
+        await fs.writeFile(LaTeX_file_dir, "");
+        await extract_LaTeX_code(LaTeX_file_dir);
+        await page.goto(new_chat);
+        await page.click(plus_button);
+        await upload_training_files(path_to_training_folder);
         await send_a_single_page(
-          i,
           pdf,
-          pages_to_loop_through.length,
           current_worksheet,
+          pages_to_loop_through.length,
+          i,
         );
-        await page.type(chat_bar, end_prompt_finished);
-        await page.click(run_button);
+        await page.click(transparent_overlay);
+        await page.type(main_prompt);
+        await page.waitForFunction(() => {
+          const replies = document.querySelectorAll(
+            `.chat-turn-container.code-block-aligner.model.render.ng-star-inserted`,
+          );
+          return replies.length > 0 && replies.length % 2 === 0;
+        });
       }
     }
     idx2++;
   }
 })();
+
+/**
+ * TODO: fix the absorbtion of replies
+ * TODO: work on cleaner sending of files.
+ */
